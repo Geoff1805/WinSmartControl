@@ -7,9 +7,6 @@
     [switch]$TrainTools,
 
     [Parameter(Mandatory = $false)]
-    [switch]$ConfigureDevTrust,
-
-    [Parameter(Mandatory = $false)]
     [switch]$NonInteractive
 )
 
@@ -56,7 +53,6 @@ if (-not (Test-IsAdmin)) {
     $scriptPath = $MyInvocation.MyCommand.Path
     $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`" -Mode $Mode"
     if ($TrainTools) { $argList += " -TrainTools" }
-    if ($ConfigureDevTrust) { $argList += " -ConfigureDevTrust" }
     
     $proc = Start-Process powershell.exe -ArgumentList $argList -Verb RunAs -PassThru -Wait
     exit $proc.ExitCode
@@ -89,36 +85,6 @@ try {
     Write-Host "[OK] Sous-système Code Integrity rafraîchi." -ForegroundColor Green
 } catch {
     Write-Host "[AVERTISSEMENT] citool.exe non disponible ou échec partiel : $_" -ForegroundColor Yellow
-}
-
-# Optional: Configure Developer Trust & Defender Exclusions
-if ($ConfigureDevTrust) {
-    Write-Host "`n[*] Configuration de la confiance développeur (Exclusions Defender & Mode Développeur)..." -ForegroundColor Cyan
-    $devPaths = @(
-        "G:\Mon Drive\05_Dev",
-        "C:\Users\geoff\.gemini",
-        "C:\Users\geoff\.gemini\antigravity\bin"
-    )
-    foreach ($p in $devPaths) {
-        if (Test-Path $p) {
-            try {
-                Add-MpPreference -ExclusionPath $p -ErrorAction SilentlyContinue
-                Write-Host "  [OK] Exclusion Defender ajoutée : $p" -ForegroundColor Green
-            } catch {
-                Write-Host "  [!] Impossible d'ajouter l'exclusion pour $p : $_" -ForegroundColor Yellow
-            }
-        }
-    }
-
-    # Enable Developer Mode in Registry
-    try {
-        $devReg = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-        if (-not (Test-Path $devReg)) { New-Item -Path $devReg -Force | Out-Null }
-        Set-ItemProperty -Path $devReg -Name "AllowDevelopmentWithoutDevLicense" -Value 1 -Type DWord -Force
-        Write-Host "  [OK] Mode Développeur Windows activé dans le registre." -ForegroundColor Green
-    } catch {
-        Write-Host "  [!] Impossible d'activer le mode développeur : $_" -ForegroundColor Yellow
-    }
 }
 
 # Training / Learning routine: exercise tools so ISG learns benign execution
