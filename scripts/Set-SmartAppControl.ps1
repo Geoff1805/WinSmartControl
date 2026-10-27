@@ -1,4 +1,4 @@
-﻿﻿param (
+﻿param (
     [Parameter(Mandatory = $false)]
     [ValidateSet("Evaluation", "Enforce", "Off", "Status")]
     [string]$Mode = "Evaluation",
@@ -63,6 +63,12 @@ $targetVal = switch ($Mode) {
     "Evaluation" { 2 }
     "Enforce"    { 1 }
     "Off"        { 0 }
+    default      { $null }
+}
+
+if ($null -eq $targetVal) {
+    Write-Host "[ERREUR] Mode cible non valide ou non reconnu : '$Mode'" -ForegroundColor Red
+    exit 1
 }
 
 Write-Host "`n[*] Application du mode : $Mode (Valeur registre = $targetVal)..." -ForegroundColor Cyan
