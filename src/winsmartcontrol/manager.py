@@ -112,28 +112,53 @@ class SmartControlManager:
             return False
 
     @staticmethod
-    def train_tools(custom_tools: Optional[List[str]] = None) -> List[Dict[str, Any]]:
-        """Exécute une série d'outils de développement pour enseigner leur légitimité au graphe de réputation (ISG)."""
-        tools = custom_tools or [
+    def get_default_tools() -> List[str]:
+        """Retourne la liste complète des outils de développement Antigravity et du système à entraîner."""
+        return [
+            "git --version",
+            "gh --version",
+            "py --version",
+            "py -m pip --version",
+            "py -m pytest --version",
             "rg --version",
             "jq --version",
-            "git --version",
-            "py --version",
             "adb version",
-            "biome --version",
+            "cmd.exe /c biome --version",
+            "act --version",
+            "gitleaks version",
+            "node --version",
+            "cmd.exe /c npm --version",
+            "cmd.exe /c java -version",
+            "cmd.exe /c javac -version",
+            "cmd.exe /c wrangler --version",
         ]
+
+    @staticmethod
+    def train_tools(custom_tools: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+        """Exécute une série d'outils de développement pour enseigner leur légitimité au graphe de réputation (ISG)."""
+        tools = custom_tools or SmartControlManager.get_default_tools()
 
         results = []
         for cmd in tools:
-            binary = cmd.split()[0]
-            binary_path = shutil.which(binary)
+            binary = cmd.split()[0].strip('"')
+            binary_path = shutil.which(binary) if not os.path.isabs(binary) else binary
             try:
-                proc = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=10)
+                proc = subprocess.run(
+                    cmd,
+                    shell=True,
+                    stdin=subprocess.DEVNULL,
+                    capture_output=True,
+                    text=True,
+                    errors="replace",
+                    timeout=5,
+                )
+                output_raw = (proc.stdout or proc.stderr or "").strip()
+                first_line = output_raw.splitlines()[0] if output_raw else "OK (Code 0)"
                 results.append({
                     "command": cmd,
                     "binary_path": binary_path,
                     "success": proc.returncode == 0,
-                    "output": (proc.stdout or proc.stderr).strip().splitlines()[0] if (proc.stdout or proc.stderr) else "",
+                    "output": first_line[:120],
                 })
             except Exception as e:
                 results.append({

@@ -1,4 +1,4 @@
-﻿param (
+﻿﻿param (
     [Parameter(Mandatory = $false)]
     [ValidateSet("Evaluation", "Enforce", "Off", "Status")]
     [string]$Mode = "Evaluation",
@@ -91,12 +91,22 @@ try {
 if ($TrainTools) {
     Write-Host "`n[*] Exécution de la boucle d'apprentissage pour les outils développeur..." -ForegroundColor Cyan
     $tools = @(
-        @{ Name = "ripgrep"; Cmd = "rg --version" },
-        @{ Name = "jq"; Cmd = "jq --version" },
         @{ Name = "git"; Cmd = "git --version" },
-        @{ Name = "python"; Cmd = "py --version" },
-        @{ Name = "adb"; Cmd = "adb version" },
-        @{ Name = "biome"; Cmd = "biome --version" }
+        @{ Name = "gh"; Cmd = "gh --version" },
+        @{ Name = "python (py)"; Cmd = "py --version" },
+        @{ Name = "pip"; Cmd = "py -m pip --version" },
+        @{ Name = "pytest"; Cmd = "py -m pytest --version" },
+        @{ Name = "ripgrep (rg)"; Cmd = "rg --version" },
+        @{ Name = "jq"; Cmd = "jq --version" },
+        @{ Name = "adb (Android)"; Cmd = "adb version" },
+        @{ Name = "biome"; Cmd = "cmd.exe /c biome --version" },
+        @{ Name = "act (CI local)"; Cmd = "act --version" },
+        @{ Name = "gitleaks"; Cmd = "gitleaks version" },
+        @{ Name = "node"; Cmd = "node --version" },
+        @{ Name = "npm"; Cmd = "cmd.exe /c npm --version" },
+        @{ Name = "wrangler (Cloudflare)"; Cmd = "cmd.exe /c wrangler --version" },
+        @{ Name = "java"; Cmd = "cmd.exe /c java -version" },
+        @{ Name = "javac"; Cmd = "cmd.exe /c javac -version" }
     )
 
     foreach ($t in $tools) {

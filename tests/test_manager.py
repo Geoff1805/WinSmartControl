@@ -49,6 +49,17 @@ def test_train_tools_nominal():
         assert "output" in r
 
 
+def test_get_default_tools_catalog():
+    """Vérifie que le catalogue d'outils par défaut contient les outils vitaux."""
+    tools = SmartControlManager.get_default_tools()
+    assert isinstance(tools, list)
+    assert len(tools) >= 10
+    assert any("git" in t for t in tools)
+    assert any("pytest" in t for t in tools)
+    assert any("rg" in t for t in tools)
+    assert any("jq" in t for t in tools)
+
+
 def test_train_tools_nonexistent_command():
     """Cas d'erreur (Edge Case) : exécution d'une commande inconnue."""
     results = SmartControlManager.train_tools(custom_tools=["non_existent_tool_123456 --xyz"])
