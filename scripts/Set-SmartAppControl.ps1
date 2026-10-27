@@ -30,10 +30,10 @@ function Test-IsAdmin {
 function Get-SACStatus {
     $val = (Get-ItemProperty -Path $RegPath -Name $ValueName -ErrorAction SilentlyContinue).$ValueName
     switch ($val) {
-        0 { return @{ Code = 0; Name = "Off (DÃ©sactivÃ©)"; Description = "Smart App Control est complÃ¨tement dÃ©sactivÃ©." } }
-        1 { return @{ Code = 1; Name = "Enforce (ActivÃ©/Bloquant)"; Description = "Smart App Control bloque toute application non vÃ©rifiÃ©e ou sans rÃ©putation." } }
-        2 { return @{ Code = 2; Name = "Evaluation (Apprentissage)"; Description = "Smart App Control est en mode apprentissage/Ã©valuation : il audite et apprend sans rien bloquer." } }
-        default { return @{ Code = -1; Name = "Inconnu ($val)"; Description = "Ã‰tat non standard ou clÃ© absente." } }
+        0 { return @{ Code = 0; Name = "Off (Désactivé)"; Description = "Smart App Control est complètement désactivé." } }
+        1 { return @{ Code = 1; Name = "Enforce (Activé/Bloquant)"; Description = "Smart App Control bloque toute application non vérifiée ou sans réputation." } }
+        2 { return @{ Code = 2; Name = "Evaluation (Apprentissage)"; Description = "Smart App Control est en mode apprentissage/évaluation : il audite et apprend sans rien bloquer." } }
+        default { return @{ Code = -1; Name = "Inconnu ($val)"; Description = "État non standard ou clé absente." } }
     }
 }
 
@@ -41,7 +41,7 @@ $current = Get-SACStatus
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "   WinSmartControl - Gestionnaire Smart App Control       " -ForegroundColor Yellow
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "[+] Ã‰tat actuel de Smart App Control : $($current.Name)" -ForegroundColor Green
+Write-Host "[+] État actuel de Smart App Control : $($current.Name)" -ForegroundColor Green
 Write-Host "    $($current.Description)" -ForegroundColor Gray
 
 if ($Mode -eq "Status") {
@@ -51,7 +51,7 @@ if ($Mode -eq "Status") {
 # Elevation check
 if (-not (Test-IsAdmin)) {
     Write-Host "[!] Droits d'administrateur requis pour modifier Smart App Control." -ForegroundColor Yellow
-    Write-Host "[*] Ã‰lÃ©vation automatique en cours via UAC..." -ForegroundColor Cyan
+    Write-Host "[*] Élévation automatique en cours via UAC..." -ForegroundColor Cyan
     
     $scriptPath = $MyInvocation.MyCommand.Path
     $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`" -Mode $Mode"
@@ -76,24 +76,24 @@ try {
     }
     Set-ItemProperty -Path $RegPath -Name $ValueName -Value $targetVal -Type DWord -Force
     Set-ItemProperty -Path $RegPath -Name "SAC_PreviousState" -Value $current.Code -Type DWord -Force
-    Write-Host "[OK] Registre mis Ã  jour avec succÃ¨s : $ValueName = $targetVal" -ForegroundColor Green
+    Write-Host "[OK] Registre mis à jour avec succès : $ValueName = $targetVal" -ForegroundColor Green
 } catch {
-    Write-Host "[ERREUR] Ã‰chec de la mise Ã  jour du registre : $_" -ForegroundColor Red
+    Write-Host "[ERREUR] Échec de la mise à jour du registre : $_" -ForegroundColor Red
     exit 1
 }
 
 # Refresh Code Integrity policy kernel-side
-Write-Host "[*] RafraÃ®chissement du sous-systÃ¨me Code Integrity (citool.exe -r)..." -ForegroundColor Cyan
+Write-Host "[*] Rafraîchissement du sous-système Code Integrity (citool.exe -r)..." -ForegroundColor Cyan
 try {
     citool.exe -r 2>&1 | Out-Null
-    Write-Host "[OK] Sous-systÃ¨me Code Integrity rafraÃ®chi." -ForegroundColor Green
+    Write-Host "[OK] Sous-système Code Integrity rafraîchi." -ForegroundColor Green
 } catch {
-    Write-Host "[AVERTISSEMENT] citool.exe non disponible ou Ã©chec partiel : $_" -ForegroundColor Yellow
+    Write-Host "[AVERTISSEMENT] citool.exe non disponible ou échec partiel : $_" -ForegroundColor Yellow
 }
 
 # Optional: Configure Developer Trust & Defender Exclusions
 if ($ConfigureDevTrust) {
-    Write-Host "`n[*] Configuration de la confiance dÃ©veloppeur (Exclusions Defender & Mode DÃ©veloppeur)..." -ForegroundColor Cyan
+    Write-Host "`n[*] Configuration de la confiance développeur (Exclusions Defender & Mode Développeur)..." -ForegroundColor Cyan
     $devPaths = @(
         "G:\Mon Drive\05_Dev",
         "C:\Users\geoff\.gemini",
@@ -103,7 +103,7 @@ if ($ConfigureDevTrust) {
         if (Test-Path $p) {
             try {
                 Add-MpPreference -ExclusionPath $p -ErrorAction SilentlyContinue
-                Write-Host "  [OK] Exclusion Defender ajoutÃ©e : $p" -ForegroundColor Green
+                Write-Host "  [OK] Exclusion Defender ajoutée : $p" -ForegroundColor Green
             } catch {
                 Write-Host "  [!] Impossible d'ajouter l'exclusion pour $p : $_" -ForegroundColor Yellow
             }
@@ -115,15 +115,15 @@ if ($ConfigureDevTrust) {
         $devReg = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
         if (-not (Test-Path $devReg)) { New-Item -Path $devReg -Force | Out-Null }
         Set-ItemProperty -Path $devReg -Name "AllowDevelopmentWithoutDevLicense" -Value 1 -Type DWord -Force
-        Write-Host "  [OK] Mode DÃ©veloppeur Windows activÃ© dans le registre." -ForegroundColor Green
+        Write-Host "  [OK] Mode Développeur Windows activé dans le registre." -ForegroundColor Green
     } catch {
-        Write-Host "  [!] Impossible d'activer le mode dÃ©veloppeur : $_" -ForegroundColor Yellow
+        Write-Host "  [!] Impossible d'activer le mode développeur : $_" -ForegroundColor Yellow
     }
 }
 
 # Training / Learning routine: exercise tools so ISG learns benign execution
 if ($TrainTools) {
-    Write-Host "`n[*] ExÃ©cution de la boucle d'apprentissage pour les outils dÃ©veloppeur..." -ForegroundColor Cyan
+    Write-Host "`n[*] Exécution de la boucle d'apprentissage pour les outils développeur..." -ForegroundColor Cyan
     $tools = @(
         @{ Name = "ripgrep"; Cmd = "rg --version" },
         @{ Name = "jq"; Cmd = "jq --version" },
@@ -138,13 +138,13 @@ if ($TrainTools) {
             $out = Invoke-Expression $t.Cmd 2>&1
             Write-Host "  [Appris] $($t.Name) : $(($out | Select-Object -First 1))" -ForegroundColor Gray
         } catch {
-            Write-Host "  [Info] $($t.Name) non exÃ©cutÃ© : $_" -ForegroundColor DarkGray
+            Write-Host "  [Info] $($t.Name) non exécuté : $_" -ForegroundColor DarkGray
         }
     }
-    Write-Host "[OK] Les outils ont Ã©tÃ© exÃ©cutÃ©s en mode Ã©valuation pour enregistrement tÃ©lÃ©mÃ©trique." -ForegroundColor Green
+    Write-Host "[OK] Les outils ont été exécutés en mode évaluation pour enregistrement télémétrique." -ForegroundColor Green
 }
 
 $updated = Get-SACStatus
 Write-Host "`n==========================================================" -ForegroundColor Cyan
-Write-Host "[SUCCÃˆS] Nouvel Ã©tat Smart App Control : $($updated.Name)" -ForegroundColor Green
+Write-Host "[SUCCÈS] Nouvel état Smart App Control : $($updated.Name)" -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Cyan
