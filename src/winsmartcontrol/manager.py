@@ -103,9 +103,10 @@ class SmartControlManager:
                     winreg.SetValueEx(key, SAC_PREV_NAME, 0, winreg.REG_DWORD, current.code)
                 winreg.SetValueEx(key, SAC_VALUE_NAME, 0, winreg.REG_DWORD, mode_code)
 
-            # Rafraîchissement de la politique CI via citool si présent
+            # Rafraîchissement de la politique CI via citool si présent (uniquement si Off)
+            # En mode Evaluation (2), citool -r réinitialiserait à 0 si la stratégie n'est pas encore chargée au boot
             citool = shutil.which("citool.exe")
-            if citool:
+            if citool and mode_code == 0:
                 subprocess.run([citool, "-r"], capture_output=True, text=True, check=False)
             return True
         except Exception:

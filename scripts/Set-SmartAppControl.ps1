@@ -98,13 +98,16 @@ try {
     exit 1
 }
 
-# Refresh Code Integrity policy kernel-side
-Write-Host "[*] Rafraîchissement du sous-système Code Integrity (citool.exe -r)..." -ForegroundColor Cyan
-try {
-    citool.exe -r 2>&1 | Out-Null
-    Write-Host "[OK] Sous-système Code Integrity rafraîchi." -ForegroundColor Green
-} catch {
-    Write-Host "[AVERTISSEMENT] citool.exe non disponible ou échec partiel : $_" -ForegroundColor Yellow
+# Gestion du rafraîchissement Code Integrity
+# Attention : Si SAC était désactivé (0), citool.exe -r réinitialise la clé de registre à 0
+# car la stratégie {0283ac0f} n'est chargée qu'au démarrage du système (Boot-time).
+if ($Mode -eq "Off") {
+    try {
+        citool.exe -r 2>&1 | Out-Null
+        Write-Host "[OK] Sous-système Code Integrity rafraîchi." -ForegroundColor Green
+    } catch {}
+} else {
+    Write-Host "[NOTE] La stratégie Évaluation sera pleinement active au prochain démarrage de Windows." -ForegroundColor Yellow
 }
 
 # Training / Learning routine: exercise tools so ISG learns benign execution
