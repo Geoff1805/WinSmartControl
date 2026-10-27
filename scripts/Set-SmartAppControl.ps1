@@ -16,6 +16,20 @@
 $OutputEncoding           = [System.Text.Encoding]::UTF8
 $PSDefaultParameterValues['*:Encoding'] = 'utf8'
 
+# Injection prioritaire de la toolchain locale Antigravity et Python dans le PATH
+$pathsToAdd = @(
+    "$env:USERPROFILE\.gemini\antigravity\bin",
+    "$env:LOCALAPPDATA\Programs\Python\Python312-arm64",
+    "$env:LOCALAPPDATA\Programs\Python\Python312-arm64\Scripts",
+    "$env:APPDATA\npm"
+)
+foreach ($p in $pathsToAdd) {
+    if ((Test-Path $p) -and ($env:PATH -notlike "*$p*")) {
+        $env:PATH = "$p;$env:PATH"
+    }
+}
+
+
 $RegPath = "HKLM:\SYSTEM\CurrentControlSet\Control\CI\Policy"
 $ValueName = "VerifiedAndReputablePolicyState"
 
@@ -98,7 +112,7 @@ if ($TrainTools) {
     Write-Host "`n[*] Exécution de la boucle d'apprentissage pour les outils développeur..." -ForegroundColor Cyan
     $tools = @(
         @{ Name = "git"; Cmd = "git --version" },
-        @{ Name = "gh"; Cmd = "gh --version" },
+        @{ Name = "gh (GitHub CLI)"; Cmd = "gh --version" },
         @{ Name = "python (py)"; Cmd = "py --version" },
         @{ Name = "pip"; Cmd = "py -m pip --version" },
         @{ Name = "pytest"; Cmd = "py -m pytest --version" },
@@ -111,19 +125,25 @@ if ($TrainTools) {
         @{ Name = "node"; Cmd = "node --version" },
         @{ Name = "npm"; Cmd = "cmd.exe /c npm --version" },
         @{ Name = "wrangler (Cloudflare)"; Cmd = "cmd.exe /c wrangler --version" },
-        @{ Name = "java"; Cmd = "cmd.exe /c java -version" },
-        @{ Name = "javac"; Cmd = "cmd.exe /c javac -version" }
+        @{ Name = "java"; Cmd = 'cmd.exe /c "java -version 2>&1"' },
+        @{ Name = "javac"; Cmd = "javac -version" }
     )
 
     foreach ($t in $tools) {
         try {
-            $out = Invoke-Expression $t.Cmd 2>&1
-            Write-Host "  [Appris] $($t.Name) : $(($out | Select-Object -First 1))" -ForegroundColor Gray
+            $rawOut = Invoke-Expression $t.Cmd 2>&1
+            $lines = ($rawOut | Out-String).Trim() -split "[\r\n]+" | Where-Object { $_.Trim() -ne "" }
+            $displayLine = ($lines | Where-Object { $_ -match "version|Build|Bridge|LTS|v[0-9]" -and $_ -notmatch "Picked up" } | Select-Object -First 1)
+            if (-not $displayLine) {
+                $displayLine = ($lines | Where-Object { $_ -notmatch "Picked up JAVA_TOOL_OPTIONS" } | Select-Object -First 1)
+            }
+            if (-not $displayLine) { $displayLine = "OK (Code 0)" }
+            Write-Host "  [Appris] $($t.Name) : $displayLine" -ForegroundColor Green
         } catch {
             Write-Host "  [Info] $($t.Name) non exécuté : $_" -ForegroundColor DarkGray
         }
     }
-    Write-Host "[OK] Les outils ont été exécutés en mode évaluation pour enregistrement télémétrique." -ForegroundColor Green
+    Write-Host "[OK] Tous les outils ont été exécutés en mode évaluation pour enregistrement télémétrique." -ForegroundColor Green
 }
 
 $updated = Get-SACStatus
