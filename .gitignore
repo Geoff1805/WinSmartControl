@@ -1,0 +1,34 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Fichiers de configuration et secrets locaux (Standards Geoff1805 / Antigravity)
+.env
+*.env
+!.env.example
+*.local.json
+credentials/
+secrets/
+
+# Logs et rapports d'audit locaux
+logs/
+*.log
+audit_reports/
+*.audit.json
+
+# Fichiers OS et éditeurs
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store

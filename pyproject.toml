@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "winsmartcontrol"
+version = "1.0.0"
+description = "Outil d'automatisation et de bascule de Windows Smart App Control (SAC) en mode évaluation/apprentissage pour développeurs."
+readme = "README.md"
+authors = [{ name = "Geoff1805" }]
+license = { text = "MIT" }
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: Microsoft :: Windows",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
+winsmartcontrol = "winsmartcontrol.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
