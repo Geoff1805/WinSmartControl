@@ -32,3 +32,14 @@ audit_reports/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Ajouté automatiquement par Sentinel (Sécurité & Secrets)
+.env.local
+*.keystore
+*.jks
+*.pem
+*.key
+*.p12
+.gradle/
+node_modules/
+*.pyc
